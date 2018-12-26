@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">MapArSample</string>
+    <string name="map_box_token">pk.eyJ1IjoiYmlsYWwyM2h1c3NhaW4iLCJhIjoiY2pxMjUzeHlhMTRvdjQzcW0yc3c4Z3k2ayJ9.4SpsRmJTvUE43VBELzqWlg</string>
+    <string name="draw_marker_options_title">Title</string>
+    <string name="draw_marker_options_snippet">Snippet</string>
+</resources>
