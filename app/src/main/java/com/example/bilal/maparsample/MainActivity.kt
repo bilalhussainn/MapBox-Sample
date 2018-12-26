@@ -2,28 +2,31 @@ package com.example.bilal.maparsample
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import com.example.bilal.maparsample.utils.PermissionUtil
+import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import kotlinx.android.synthetic.main.activity_main.*
+import com.mapbox.mapboxsdk.style.layers.Layer
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-
-    override fun onProviderEnabled(provider: String?) {}
-
-    override fun onProviderDisabled(provider: String?) {}
 
     private lateinit var mapView: MapView
     private var mapboxMap: MapboxMap? = null
+    private lateinit var currentLatLng: LatLng
+    private var currentMarker: Marker? = null
 
     // @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,30 +39,48 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        change.setOnClickListener {
+            mapboxMap?.let {
+                for (singleLayer in it.layers) {
+                    Log.d("TAG", "onMapReady: layer id = " + singleLayer.id)
+                }
+            }
+            //     mapboxMap?.getLayers("park").setProperties(
+            //             PropertyFactory.fillColor(Color.parseColor("#0e6001")));
+        }
+
+    }
+
+    override fun onLocationChanged(location: Location?) {
+        currentLatLng = LatLng(location?.latitude!!, location?.longitude!!)
+        currentMarker?.remove()
+        currentMarker = mapboxMap?.addMarker(MarkerOptions().position(currentLatLng).title(
+                        getString(R.string.draw_marker_options_title)).snippet(
+                        getString(R.string.draw_marker_options_snippet)))
+
+        mapboxMap?.animateCamera(CameraUpdateFactory.newLatLng(currentLatLng))
+
+    }
+
+    override fun onMapReady(mapboxMap: MapboxMap?) {
+        this.mapboxMap = mapboxMap
         loadMarker()
     }
 
     @SuppressLint("MissingPermission")
     fun loadMarker() {
-       // if (PermissionUtil.hasPermissions(applicationContext, PermissionUtil.PERMISSIONS)) {
-            var locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0f, this)
-       // }
+        // if (PermissionUtil.hasPermissions(applicationContext, PermissionUtil.PERMISSIONS)) {
+        var locationManager: LocationManager =
+                getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0f, this)
+        // }
     }
 
-    override fun onMapReady(mapboxMap: MapboxMap?) {
-        this.mapboxMap = mapboxMap
-    }
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 
-    override fun onLocationChanged(location: Location?) {
-        var currentLatLng = LatLng(location?.latitude!!, location?.longitude!!)
+    override fun onProviderEnabled(provider: String?) {}
 
-        mapboxMap?.addMarker(MarkerOptions()
-                .position(currentLatLng)
-                .title(getString(R.string.draw_marker_options_title))
-                .snippet(getString(R.string.draw_marker_options_snippet)))
-
-    }
+    override fun onProviderDisabled(provider: String?) {}
 
     override fun onStart() {
         super.onStart()
